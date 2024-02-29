@@ -1,3 +1,4 @@
+from scipy.special import logsumexp
 from pathlib import Path
 import os
 import subprocess
@@ -597,12 +598,11 @@ class Trainer(utils.KwConfigClass):
                     np.save(
                         this_pred_dir / filename.replace(".jpg", ""),
                         smap.copy())
-
+                    
                 # Save prediction as image
                 smap = (smap / np.amax(smap) * 255).astype(np.uint8)
                 pred_file = this_pred_dir / filename
-                cv2.imwrite(str(pred_file), smap,
-                            [cv2.IMWRITE_JPEG_QUALITY, 100])
+                cv2.imwrite(str(pred_file), smap,[cv2.IMWRITE_JPEG_QUALITY, 100])
 
         # Optionally compute the scores
         if metrics is not None:
@@ -902,7 +902,7 @@ class Trainer(utils.KwConfigClass):
 
             else:
                 dataset = data.FolderImageDataset(images_path)
-                pred_dir = folder_path / 'saliency'
+                pred_dir = folder_path / 'predictions' / 'unisal_pred'
                 pred_dir.mkdir(exist_ok=True)
 
                 for img_idx in range(len(dataset)):
@@ -912,6 +912,31 @@ class Trainer(utils.KwConfigClass):
 
                     smap = pred_seq[:, 0, ...]
 
+                    '''DEVIATED FROM ORIGINAL CODE
+                    instead of saving into images - normalize to log-prob and save into npz array
+                    original code is commented below'''
+                    # Posporcess prediction
+                    # smap = smap.exp()
+                    smap -= logsumexp(smap)
+                    smap = torch.squeeze(smap)
+                    smap = utils.to_numpy(smap)
+
+                    # smap -= logsumexp(smap)
+                    print(logsumexp(smap))
+                    
+                    # Save prediction as image
+                    filename = dataset.image_files[img_idx].name
+                    smap_pred = smap
+                    # converting to 0-255 (rgb values)
+                    smap = (np.exp(smap) / np.amax(np.exp(smap)) * 255).astype(np.uint8)
+                    pred_file = pred_dir / filename
+                    np.savez_compressed(str(pred_file.with_suffix('.npz')), arr_0 = smap_pred)
+                    # generalize this ->
+                    img_file = Path("/home/ishai/Code/Models_Saliency_Differentiation/images/unisal_pred")
+                    cv2.imwrite(
+                        str(img_file / filename), smap, [cv2.IMWRITE_JPEG_QUALITY, 100])
+                    
+                    '''ORIGINAL CODE
                     # Posporcess prediction
                     smap = smap.exp()
                     smap = torch.squeeze(smap)
@@ -923,6 +948,7 @@ class Trainer(utils.KwConfigClass):
                     pred_file = pred_dir / filename
                     cv2.imwrite(
                         str(pred_file), smap, [cv2.IMWRITE_JPEG_QUALITY, 100])
+                    '''
 
     def fine_tune_mit(
             self, lr=0.01, num_epochs=8, lr_gamma=0.8, x_val_step=0,
