@@ -922,7 +922,7 @@ class Trainer(utils.KwConfigClass):
                     smap = utils.to_numpy(smap)
 
                     # smap -= logsumexp(smap)
-                    print(logsumexp(smap))
+                    # print(logsumexp(smap))
                     
                     # Save prediction as image
                     filename = dataset.image_files[img_idx].name
