@@ -1,4 +1,5 @@
 from scipy.special import logsumexp
+import matplotlib.image as mpimg
 from pathlib import Path
 import os
 import subprocess
@@ -902,8 +903,12 @@ class Trainer(utils.KwConfigClass):
 
             else:
                 dataset = data.FolderImageDataset(images_path)
-                pred_dir = folder_path / 'predictions' / 'unisal_pred'
+                pred_dir = folder_path / 'predictions'
                 pred_dir.mkdir(exist_ok=True)
+                img_dir = folder_path / "images" / "unisal_pred"
+                img_dir.mkdir(exist_ok=True)
+                # Initialize the log-probability prediction list
+                logprob_predictions = []
 
                 for img_idx in range(len(dataset)):
                     pred_seq = self.run_inference(
@@ -916,25 +921,21 @@ class Trainer(utils.KwConfigClass):
                     instead of saving into images - normalize to log-prob and save into npz array
                     original code is commented below'''
                     # Posporcess prediction
-                    # smap = smap.exp()
                     smap -= logsumexp(smap)
                     smap = torch.squeeze(smap)
                     smap = utils.to_numpy(smap)
 
-                    # smap -= logsumexp(smap)
-                    # print(logsumexp(smap))
+                    print("predicting...")
                     
                     # Save prediction as image
                     filename = dataset.image_files[img_idx].name
-                    smap_pred = smap
+                    pred_file = pred_dir / 'unisal_pred' / filename
+                    logprob_predictions.append((filename, smap))
+                    np.savez_compressed(str(pred_file.with_suffix('.npz')), arr_0 = smap)
                     # converting to 0-255 (rgb values)
                     smap = (np.exp(smap) / np.amax(np.exp(smap)) * 255).astype(np.uint8)
-                    pred_file = pred_dir / filename
-                    np.savez_compressed(str(pred_file.with_suffix('.npz')), arr_0 = smap_pred)
-                    # generalize this ->
-                    img_file = Path("/home/ishai/Code/Models_Saliency_Differentiation/images/unisal_pred")
-                    cv2.imwrite(
-                        str(img_file / filename), smap, [cv2.IMWRITE_JPEG_QUALITY, 100])
+                    # saving into images
+                    mpimg.imsave(img_dir / filename, smap, cmap='gist_gray')
                     
                     '''ORIGINAL CODE
                     # Posporcess prediction
@@ -949,6 +950,12 @@ class Trainer(utils.KwConfigClass):
                     cv2.imwrite(
                         str(pred_file), smap, [cv2.IMWRITE_JPEG_QUALITY, 100])
                     '''
+                # Save log-probability predictions as npz array
+                logprob_predictions.sort(key=lambda x: x[0].lower())
+                log_density_dict = {f"log_density_{i}": log_density[1] for i, log_density 
+                                    in enumerate(logprob_predictions)}
+                np.savez_compressed(os.path.join(pred_dir, "unisal_pred.npz"),
+                                     **log_density_dict)
 
     def fine_tune_mit(
             self, lr=0.01, num_epochs=8, lr_gamma=0.8, x_val_step=0,
