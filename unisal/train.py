@@ -818,7 +818,7 @@ class Trainer(utils.KwConfigClass):
             # the last epoch
             try:
                 self.model.load_best_weights(self.train_dir)
-                print('Best weights loaded')
+                # print('Best weights loaded')
             except FileNotFoundError:
                 print('No best weights found')
                 self.model.load_last_chkpnt(self.train_dir)
@@ -868,7 +868,7 @@ class Trainer(utils.KwConfigClass):
             # the last epoch
             try:
                 self.model.load_best_weights(self.train_dir)
-                print('Best weights loaded')
+                # print('Best weights loaded')
             except FileNotFoundError:
                 print('No best weights found')
                 self.model.load_last_chkpnt(self.train_dir)
@@ -925,7 +925,6 @@ class Trainer(utils.KwConfigClass):
                     smap = torch.squeeze(smap)
                     smap = utils.to_numpy(smap)
 
-                    print("predicting...")
                     
                     # Save prediction as image
                     filename = dataset.image_files[img_idx].name

@@ -62,7 +62,7 @@ def load_module(directory, module_name, full_name):
 
 def load_trainer(directory, **kwargs):
     train = load_module(directory / 'code_copy', 'bds_net', 'bds_net.train')
-    print(train)
+    # print(train)
     train = train.Trainer.init_from_cfg_dir(directory, **kwargs)
     return train
 
@@ -70,7 +70,7 @@ def load_trainer(directory, **kwargs):
 def load_model(directory, **kwargs):
     # model = load_module(directory, 'code_copy', 'code_copy.model')
     model = load_module(directory / 'code_copy', 'bds_net', 'bds_net.model')
-    print(model)
+    # print(model)
     model_cls = model.get_model()
     model = model_cls.init_from_cfg_dir(directory, **kwargs)
     return model
@@ -79,7 +79,7 @@ def load_model(directory, **kwargs):
 def load_dataset(directory, **kwargs):
     # data = load_module(directory, 'code_copy', 'code_copy.data')
     data = load_module(directory / 'code_copy', 'bds_net', 'bds_net.data')
-    print(data)
+    # print(data)
     dataset_cls = data.get_dataset()
     dataset = dataset_cls.init_from_cfg_dir(directory, **kwargs)
     return dataset

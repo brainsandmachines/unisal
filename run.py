@@ -21,7 +21,7 @@ def load_trainer(train_id=None):
     """Instantiate Trainer class from saved kwargs."""
     if train_id is None:
         train_id = 'pretrained_unisal'
-    print(f"Train ID: {train_id}")
+    # print(f"Train ID: {train_id}")
     train_dir = Path(os.environ["TRAIN_DIR"])
     train_dir = train_dir / train_id
     return unisal.train.Trainer.init_from_cfg_dir(train_dir)
