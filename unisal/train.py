@@ -905,7 +905,7 @@ class Trainer(utils.KwConfigClass):
                 dataset = data.FolderImageDataset(images_path)
                 pred_dir = folder_path / 'resources'
                 (pred_dir / 'unisal_pred').mkdir(parents=True, exist_ok=True)
-                img_dir = folder_path / "predictions" / "unisal_pred"
+                img_dir = folder_path / "resources" / "unisal_pred"
                 img_dir.mkdir(exist_ok=True)
                 # Initialize the log-probability prediction list
                 logprob_predictions = []
